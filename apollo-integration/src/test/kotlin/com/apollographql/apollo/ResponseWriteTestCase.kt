@@ -432,8 +432,11 @@ class ResponseWriteTestCase {
     ) { (_, data) ->
       assertThat(data!!.starship?.name).isEqualTo("SuperRocket")
       assertThat(data.starship?.coordinates).hasSize(3)
-      assertThat(data.starship?.coordinates).containsExactly(Arrays.asList(100.0, 200.0), Arrays.asList(300.0, 400.0),
-          Arrays.asList(500.0, 600.0))
+      assertThat(data.starship?.coordinates).containsExactly(
+          listOf(100.0, 200.0),
+          listOf(300.0, 400.0),
+          listOf(500.0, 600.0)
+      )
       true
     }
     val starship = Starship(

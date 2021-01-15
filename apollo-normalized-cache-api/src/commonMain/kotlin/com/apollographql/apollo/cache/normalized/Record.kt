@@ -10,6 +10,14 @@ import kotlin.jvm.Volatile
 /**
  * A normalized entry that corresponds to a response object. Object fields are stored if they are a GraphQL Scalars. If
  * a field is a GraphQL Object a [CacheReference] will be stored instead.
+ *
+ * A [Record] field can be null or an instances of:
+ * - [CacheReference]
+ * - [com.apollographql.apollo.api.BigDecimal]
+ * - [String]
+ * - [Boolean]
+ * - [List]<F?> where F is resolved recursively
+ * - [Map]<String, F?> where F is resolved recursively
  */
 class Record internal constructor(
     val key: String,

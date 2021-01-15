@@ -42,12 +42,16 @@ class CacheJsonReader(
   override fun beginObject() = apply {
     if (currentReader.peek() == JsonReader.Token.STRING) {
       val ref = currentReader.nextString()!!
-      val cacheKey = CacheReference.deserialize(ref)
+      val key = if (currentReader is MapJsonReader) {
+        ref
+      } else {
+        CacheReference.deserialize(ref).key
+      }
 
-      val nextReader = readableCache.stream(cacheKey.key, cacheHeaders)
+      val nextReader = readableCache.stream(key, cacheHeaders)
 
       check(nextReader != null) {
-        "cache MISS on ${cacheKey.key}"
+        "cache MISS on ${key}"
       }
       push(nextReader)
     } else if (currentReader.peek() == JsonReader.Token.BEGIN_OBJECT){

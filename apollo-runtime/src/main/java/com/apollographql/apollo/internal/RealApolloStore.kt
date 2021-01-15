@@ -17,6 +17,7 @@ import com.apollographql.apollo.cache.normalized.internal.ReadableStore
 import com.apollographql.apollo.cache.normalized.internal.WriteableStore
 import com.apollographql.apollo.cache.normalized.internal.normalize
 import com.apollographql.apollo.cache.normalized.internal.readDataFromCache
+import com.apollographql.apollo.cache.normalized.internal.streamDataFromCache
 import java.util.Collections
 import java.util.LinkedHashSet
 import java.util.UUID
@@ -137,7 +138,7 @@ class RealApolloStore(normalizedCache: NormalizedCache,
   ): D? {
     return readTransaction { cache ->
       try {
-        operation.readDataFromCache(
+        operation.streamDataFromCache(
             customScalarAdapters,
             cache,
             cacheKeyResolver(),

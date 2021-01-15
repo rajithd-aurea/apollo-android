@@ -2,6 +2,7 @@ package com.apollographql.apollo.cache.normalized.internal
 
 import com.apollographql.apollo.api.BigDecimal
 import com.apollographql.apollo.api.internal.json.JsonReader
+import com.apollographql.apollo.api.toNumber
 import com.apollographql.apollo.cache.normalized.CacheReference
 
 class MapJsonReader(val root: Map<String, Any?>) : JsonReader {
@@ -77,7 +78,7 @@ class MapJsonReader(val root: Map<String, Any?>) : JsonReader {
     is BigDecimal -> JsonReader.Token.NUMBER
     is String -> JsonReader.Token.STRING
     is Boolean -> JsonReader.Token.BOOLEAN
-    is CacheReference -> JsonReader.Token.BEGIN_OBJECT
+    is CacheReference -> JsonReader.Token.STRING
     else -> error("")
   }
   override fun hasNext(): Boolean {
@@ -131,7 +132,14 @@ class MapJsonReader(val root: Map<String, Any?>) : JsonReader {
   }
 
   override fun nextString(): String? {
-    return nextValue() as String?
+    return nextValue().let {
+      if (it is CacheReference) {
+        // Map CacheReferences to Strings
+        it.key
+      } else {
+        it as String?
+      }
+    }
   }
 
   override fun nextBoolean(): Boolean {
@@ -146,15 +154,15 @@ class MapJsonReader(val root: Map<String, Any?>) : JsonReader {
   }
 
   override fun nextDouble(): Double {
-    return nextValue() as Double
+    return (nextValue() as BigDecimal).toNumber().toDouble()
   }
 
   override fun nextLong(): Long {
-    return nextValue() as Long
+    return (nextValue() as BigDecimal).toNumber().toLong()
   }
 
   override fun nextInt(): Int {
-    return nextValue() as Int
+    return (nextValue() as BigDecimal).toNumber().toInt()
   }
 
   override fun skipValue() {

@@ -17,7 +17,6 @@ import kotlin.reflect.KClass
 /**
  * A [NormalizedCache] backed by an in memory [Cache]. Can be configured with an optional secondaryCache [ ], which will be used as a backup if a [Record] is not present in the primary cache.
  *
- *
  * A common configuration is to have secondary SQL cache.
  */
 class LruNormalizedCache internal constructor(evictionPolicy: EvictionPolicy) : NormalizedCache() {

@@ -2,6 +2,7 @@ package com.apollographql.apollo.cache.normalized
 
 import com.apollographql.apollo.api.internal.json.JsonReader
 import com.apollographql.apollo.cache.CacheHeaders
+import com.apollographql.apollo.cache.normalized.internal.MapJsonReader
 import com.nytimes.android.external.cache.CacheBuilder
 import java.util.UUID
 import kotlin.math.max
@@ -22,8 +23,20 @@ class OptimisticNormalizedCache : NormalizedCache() {
 
   override fun stream(key: String, cacheHeaders: CacheHeaders): JsonReader? {
     return try {
-      // XXX: fix optimistic updates
-      nextCache?.stream(key, cacheHeaders)
+      val snapshot = lruCache.getIfPresent(key)?.snapshot
+      if (snapshot == null) {
+        return nextCache?.stream(key, cacheHeaders)
+      } else {
+        // if there is a snapshot, we cannot stream as we have to merge the incoming record with the snapshot
+        val nonOptimisticRecord = nextCache?.loadRecord(key, cacheHeaders)
+        MapJsonReader(if (nonOptimisticRecord != null) {
+          snapshot.toBuilder().build().apply {
+            mergeWith(nonOptimisticRecord)
+          }
+        } else  {
+          snapshot
+        })
+      }
     } catch (ignore: Exception) {
       null
     }
@@ -112,7 +125,7 @@ class OptimisticNormalizedCache : NormalizedCache() {
 
   private class RecordJournal(mutationRecord: Record) {
     var snapshot: Record = mutationRecord.toBuilder().build()
-    val history = mutableListOf<Record>(mutationRecord.toBuilder().build())
+    val history = mutableListOf(mutationRecord.toBuilder().build())
 
     /**
      * Commits new version of record to the history and invalidate snapshot version.

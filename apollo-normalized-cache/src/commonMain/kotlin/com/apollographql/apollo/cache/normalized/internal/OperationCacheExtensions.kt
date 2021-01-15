@@ -95,7 +95,6 @@ fun <D : Operation.Data> Operation<D>.streamDataFromCache(
     jsonReader.beginObject()
     adapter().fromResponse(reader)
   } catch (e: Exception) {
-    e.printStackTrace()
     null
   }
 }

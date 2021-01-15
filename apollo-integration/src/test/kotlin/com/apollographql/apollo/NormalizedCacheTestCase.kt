@@ -441,11 +441,12 @@ class NormalizedCacheTestCase {
       assertThat(data.hero?.friends).hasSize(3)
       true
     }
+
     assertResponse(
         apolloClient.query(CharacterNameByIdQuery("1002")).responseFetcher(ApolloResponseFetchers.CACHE_ONLY)
     ) { response ->
       assertThat(response.isFromCache).isTrue()
-      assertThat(response.data!!.character!!.name).isEqualTo("Han Solo")
+      assertThat(response.data?.character?.name).isEqualTo("Han Solo")
       true
     }
 
