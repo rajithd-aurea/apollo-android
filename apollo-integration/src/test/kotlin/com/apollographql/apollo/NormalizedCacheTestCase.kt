@@ -11,8 +11,11 @@ import com.apollographql.apollo.api.Input.Companion.fromNullable
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.cache.normalized.CacheKey.Companion.from
 import com.apollographql.apollo.cache.normalized.NormalizedCache.Companion.prettifyDump
+import com.apollographql.apollo.cache.normalized.NormalizedCacheFactory
+import com.apollographql.apollo.cache.normalized.RecordFieldJsonAdapter
 import com.apollographql.apollo.cache.normalized.lru.EvictionPolicy
 import com.apollographql.apollo.cache.normalized.lru.LruNormalizedCacheFactory
+import com.apollographql.apollo.cache.normalized.simple.MapNormalizedCache
 import com.apollographql.apollo.fetcher.ApolloResponseFetchers
 import com.apollographql.apollo.integration.httpcache.AllPlanetsQuery
 import com.apollographql.apollo.integration.normalizer.CharacterDetailsQuery
@@ -58,7 +61,12 @@ class NormalizedCacheTestCase {
     apolloClient = ApolloClient.builder()
         .serverUrl(server.url("/"))
         .okHttpClient(okHttpClient)
-        .normalizedCache(LruNormalizedCacheFactory(EvictionPolicy.NO_EVICTION), IdFieldCacheKeyResolver())
+        .normalizedCache(object : NormalizedCacheFactory<MapNormalizedCache>() {
+          override fun create(recordFieldAdapter: RecordFieldJsonAdapter): MapNormalizedCache {
+            return MapNormalizedCache()
+          }
+
+        }, IdFieldCacheKeyResolver())
         .dispatcher(immediateExecutor())
         .build()
   }

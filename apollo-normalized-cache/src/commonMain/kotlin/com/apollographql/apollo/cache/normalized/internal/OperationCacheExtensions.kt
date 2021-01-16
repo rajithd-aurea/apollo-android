@@ -80,16 +80,7 @@ fun <D : Operation.Data> Operation<D>.streamDataFromCache(
         variables = variables(),
         customScalarAdapters = customScalarAdapters,
     ) { field ->
-      var cacheKey = CacheKey.NO_KEY
-      if (field.type == ResponseField.Type.OBJECT) {
-        // this could be a CacheReference,
-        cacheKey = cacheKeyResolver.fromFieldArguments(field, variables())
-      }
-      if (cacheKey != CacheKey.NO_KEY) {
-        cacheKey.key
-      } else {
-        cacheKeyBuilder.build(field, variables())
-      }
+      cacheKeyBuilder.build(field, variables())
     }
 
     jsonReader.beginObject()
