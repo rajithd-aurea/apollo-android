@@ -1,28 +1,19 @@
 package com.apollographql.apollo.api.internal
 
-import com.apollographql.apollo.api.JsonElement
-import com.apollographql.apollo.api.Operation
-import com.apollographql.apollo.api.ResponseField
 import com.apollographql.apollo.api.CustomScalar
 import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.JsonElement
+import com.apollographql.apollo.api.ResponseField
 import com.apollographql.apollo.api.internal.json.JsonReader
 import com.apollographql.apollo.api.internal.json.Utils.readRecursively
 
-class StreamResponseReader private constructor(
+ class NetworkStreamResponseReader(
     private val jsonReader: JsonReader,
-    private val variableValues: Map<String, Any?>,
     private val customScalarAdapters: CustomScalarAdapters,
-    private val fieldKey: (ResponseField) -> String = {it.responseName}
-) : ResponseReader {
-  private var selectedFieldIndex: Int = -1
+) : ResponseReader, ResponseReader.ListItemReader {
   private var selectedField: ResponseField? = null
 
-  constructor(
-      jsonReader: JsonReader,
-      variables: Operation.Variables,
-      customScalarAdapters: CustomScalarAdapters,
-      fieldKey: (ResponseField) -> String = {it.responseName}
-  ) : this(jsonReader, variables.valueMap(), customScalarAdapters, fieldKey)
+  private var selectedFieldIndex: Int = -1
 
   override fun selectField(fields: Array<ResponseField>): Int {
     while (jsonReader.hasNext()) {
@@ -33,7 +24,7 @@ class StreamResponseReader private constructor(
 
       if (selectedFieldIndex >= fields.size || fields[selectedFieldIndex].responseName != nextFieldName) {
         // our guess failed, fallback to full scan
-        selectedFieldIndex = fields.indexOfFirst { field -> fieldKey(field) == nextFieldName }
+        selectedFieldIndex = fields.indexOfFirst { field -> field.responseName == nextFieldName }
       }
 
       if (selectedFieldIndex == -1) {
@@ -74,13 +65,7 @@ class StreamResponseReader private constructor(
   override fun <T : Any> readObject(field: ResponseField, block: (ResponseReader) -> T): T? {
     return readValue(field) {
       beginObject()
-      val result = block(
-        StreamResponseReader(
-          jsonReader = this,
-          variableValues = variableValues,
-          customScalarAdapters = customScalarAdapters,
-        )
-      )
+      val result = block(this@NetworkStreamResponseReader)
       endObject()
       result
     }
@@ -89,16 +74,11 @@ class StreamResponseReader private constructor(
   override fun <T : Any> readList(field: ResponseField, block: (ResponseReader.ListItemReader) -> T): List<T?>? {
     return readValue(field) {
       beginArray()
-      val listItemReader = ListItemReader(
-        jsonReader = this,
-        variableValues = variableValues,
-        customScalarAdapters = customScalarAdapters,
-      )
       val result = ArrayList<T?>()
       while (hasNext()) {
         when (peek()) {
           JsonReader.Token.NULL -> result.add(jsonReader.nextNull())
-          else -> result.add(block(listItemReader))
+          else -> result.add(block(this@NetworkStreamResponseReader))
         }
       }
       endArray()
@@ -138,58 +118,45 @@ class StreamResponseReader private constructor(
     }
   }
 
-  private class ListItemReader(
-      private val jsonReader: JsonReader,
-      private val variableValues: Map<String, Any?>,
-      private val customScalarAdapters: CustomScalarAdapters,
-  ) : ResponseReader.ListItemReader {
+  override fun readString(): String {
+    return jsonReader.nextString()!!
+  }
 
-    override fun readString(): String {
-      return jsonReader.nextString()!!
-    }
+  override fun readInt(): Int {
+    return jsonReader.nextInt()
+  }
 
-    override fun readInt(): Int {
-      return jsonReader.nextInt()
-    }
+  override fun readDouble(): Double {
+    return jsonReader.nextDouble()
+  }
 
-    override fun readDouble(): Double {
-      return jsonReader.nextDouble()
-    }
+  override fun readBoolean(): Boolean {
+    return jsonReader.nextBoolean()
+  }
 
-    override fun readBoolean(): Boolean {
-      return jsonReader.nextBoolean()
-    }
+  override fun <T : Any> readCustomScalar(customScalar: CustomScalar): T{
+    val typeAdapter = customScalarAdapters.adapterFor<T>(customScalar)
+    val value = jsonReader.readRecursively()!!
+    return typeAdapter.decode(JsonElement.fromRawValue(value))
+  }
 
-    override fun <T : Any> readCustomScalar(customScalar: CustomScalar): T{
-      val typeAdapter = customScalarAdapters.adapterFor<T>(customScalar)
-      val value = jsonReader.readRecursively()!!
-      return typeAdapter.decode(JsonElement.fromRawValue(value))
-    }
+  override fun <T : Any> readObject(block: (ResponseReader) -> T): T {
+    jsonReader.beginObject()
+    val result = block(this@NetworkStreamResponseReader)
+    jsonReader.endObject()
+    return result
+  }
 
-    override fun <T : Any> readObject(block: (ResponseReader) -> T): T {
-      jsonReader.beginObject()
-      val result = block(
-        StreamResponseReader(
-          jsonReader = jsonReader,
-          variableValues = variableValues,
-          customScalarAdapters = customScalarAdapters,
-        )
-      )
-      jsonReader.endObject()
-      return result
-    }
-
-    override fun <T : Any> readList(block: (ResponseReader.ListItemReader) -> T): List<T?> {
-      jsonReader.beginArray()
-      val result = ArrayList<T?>()
-      while (jsonReader.hasNext()) {
-        when (jsonReader.peek()) {
-          JsonReader.Token.NULL -> result.add(jsonReader.nextNull())
-          else -> result.add(block(this))
-        }
+  override fun <T : Any> readList(block: (ResponseReader.ListItemReader) -> T): List<T?> {
+    jsonReader.beginArray()
+    val result = ArrayList<T?>()
+    while (jsonReader.hasNext()) {
+      when (jsonReader.peek()) {
+        JsonReader.Token.NULL -> result.add(jsonReader.nextNull())
+        else -> result.add(block(this))
       }
-      jsonReader.endArray()
-      return result
     }
+    jsonReader.endArray()
+    return result
   }
 }

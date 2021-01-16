@@ -4,10 +4,7 @@ import com.apollographql.apollo.api.CustomScalarAdapters
 import com.apollographql.apollo.api.Fragment
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.cache.normalized.Record
-import com.apollographql.apollo.api.ResponseField
-import com.apollographql.apollo.api.internal.MapResponseParser
 import com.apollographql.apollo.api.internal.MapResponseReader
-import com.apollographql.apollo.api.internal.StreamResponseReader
 import com.apollographql.apollo.cache.CacheHeaders
 import com.apollographql.apollo.cache.normalized.CacheKey
 import com.apollographql.apollo.cache.normalized.CacheKeyResolver
@@ -69,19 +66,17 @@ fun <D : Operation.Data> Operation<D>.streamDataFromCache(
     cacheHeaders: CacheHeaders,
 ): D? {
   return try {
-    val cacheKeyBuilder = RealCacheKeyBuilder()
     val jsonReader = CacheJsonReader(
         rootKey = CacheKeyResolver.rootKey().key,
         readableCache = readableStore,
         cacheHeaders = cacheHeaders,
     )
-    val reader = StreamResponseReader(
+    val reader = CacheStreamResponseReader(
         jsonReader = jsonReader,
-        variables = variables(),
         customScalarAdapters = customScalarAdapters,
-    ) { field ->
-      cacheKeyBuilder.build(field, variables())
-    }
+        variables = variables(),
+        cacheKeyResolver = cacheKeyResolver
+    )
 
     jsonReader.beginObject()
     adapter().fromResponse(reader)

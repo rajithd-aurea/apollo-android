@@ -3,7 +3,6 @@ package com.apollographql.apollo.api.internal
 import com.apollographql.apollo.api.BigDecimal
 import com.apollographql.apollo.api.CustomScalarAdapter
 import com.apollographql.apollo.api.JsonElement
-import com.apollographql.apollo.api.EMPTY_OPERATION
 import com.apollographql.apollo.api.ResponseField
 import com.apollographql.apollo.api.CustomScalar
 import com.apollographql.apollo.api.CustomScalarAdapters
@@ -421,7 +420,7 @@ class SimpleResponseReaderTest {
   }
 
   companion object {
-    private fun responseReader(recordSet: Map<String, Any>): StreamResponseReader {
+    private fun responseReader(recordSet: Map<String, Any>): NetworkStreamResponseReader {
       val customScalarAdapters: MutableMap<CustomScalar, CustomScalarAdapter<*>> = HashMap()
       customScalarAdapters[OBJECT_CUSTOM_CUSTOM] = object : CustomScalarAdapter<Any?> {
         override fun decode(jsonElement: JsonElement): Any {
@@ -441,9 +440,8 @@ class SimpleResponseReaderTest {
             flush()
           }
       ).beginObject()
-      return StreamResponseReader(
+      return NetworkStreamResponseReader(
           jsonReader = jsonReader,
-          variables = EMPTY_OPERATION.variables(),
           customScalarAdapters = CustomScalarAdapters(customScalarAdapters),
       )
     }

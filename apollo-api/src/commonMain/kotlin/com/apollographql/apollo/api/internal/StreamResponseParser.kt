@@ -31,7 +31,6 @@ object StreamResponseParser {
         when (jsonReader.nextName()) {
           "data" -> data = jsonReader.readData(
               adapter = operation.adapter(),
-              variables = operation.variables(),
               customScalarAdapters = customScalarAdapters,
           )
           "errors" -> errors = jsonReader.readErrors()
@@ -53,7 +52,6 @@ object StreamResponseParser {
 
   private fun <D : Operation.Data> JsonReader.readData(
       adapter: ResponseAdapter<D>,
-      variables: Operation.Variables,
       customScalarAdapters: CustomScalarAdapters,
   ): D? {
     if (peek() == JsonReader.Token.NULL) {
@@ -62,9 +60,8 @@ object StreamResponseParser {
 
     beginObject()
     val data = adapter.fromResponse(
-        StreamResponseReader(
+        NetworkStreamResponseReader(
             jsonReader = this,
-            variables = variables,
             customScalarAdapters = customScalarAdapters,
         )
     )

@@ -120,9 +120,8 @@ class StreamResponseReaderJvmCustomTypesTest {
             flush()
           }
       )
-      return StreamResponseReader(
+      return NetworkStreamResponseReader(
           jsonReader = jsonReader,
-          variables = EMPTY_OPERATION.variables(),
           scalarTypeAdapters = ScalarTypeAdapters(customScalarAdapters),
       )
     }

@@ -16,6 +16,7 @@ class CacheJsonReader(
 
   private val readerStack = ArrayList<JsonReader>()
   private val depthStack = ArrayList<Int>()
+  var skipNextBeginObject = false
 
   private fun push(reader: JsonReader) {
     readerStack.add(currentReader)
@@ -40,25 +41,32 @@ class CacheJsonReader(
   }
 
   override fun beginObject() = apply {
-    if (currentReader.peek() == JsonReader.Token.STRING) {
-      val ref = currentReader.nextString()!!
-      val key = if (currentReader is MapJsonReader) {
-        ref
-      } else {
-        CacheReference.deserialize(ref).key
+    when {
+      skipNextBeginObject -> {
+        skipNextBeginObject = false
       }
+      currentReader.peek() == JsonReader.Token.STRING -> {
+        val ref = currentReader.nextString()!!
+        val key = if (currentReader is MapJsonReader) {
+          ref
+        } else {
+          CacheReference.deserialize(ref).key
+        }
 
-      val nextReader = readableCache.stream(key, cacheHeaders)
+        val nextReader = readableCache.stream(key, cacheHeaders)
 
-      check(nextReader != null) {
-        "cache MISS on ${key}"
+        check(nextReader != null) {
+          "cache MISS on $key"
+        }
+        push(nextReader)
       }
-      push(nextReader)
-    } else if (currentReader.peek() == JsonReader.Token.BEGIN_OBJECT){
-      // nested scalar field
-      currentReader.beginObject()
-    } else {
-      error("not an object or a string :(")
+      currentReader.peek() == JsonReader.Token.BEGIN_OBJECT -> {
+        // nested scalar field
+        currentReader.beginObject()
+      }
+      else -> {
+        error("not an object or a string :(")
+      }
     }
   }
 
@@ -70,7 +78,7 @@ class CacheJsonReader(
   }
 
   override fun hasNext(): Boolean {
-    return currentReader.hasNext()
+    return currentReader.hasNext() && currentReader.peek() != JsonReader.Token.END_DOCUMENT
   }
 
   override fun peek(): JsonReader.Token {
@@ -113,5 +121,19 @@ class CacheJsonReader(
 
   override fun close() {
     // Nothing to do \o/
+  }
+
+  fun beginFakeObject(key: String) {
+    skipNextBeginObject = true
+    val nextReader = readableCache.stream(key, cacheHeaders)
+
+    check(nextReader != null) {
+      "cache MISS on $key"
+    }
+    push(nextReader)
+  }
+
+  fun endFakeObject() {
+    pop()
   }
 }
