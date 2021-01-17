@@ -7,6 +7,7 @@ import com.apollographql.apollo.cache.normalized.Record
 import com.apollographql.apollo.api.ResponseField
 import com.apollographql.apollo.api.internal.MapResponseParser
 import com.apollographql.apollo.api.internal.MapResponseReader
+import com.apollographql.apollo.api.internal.ResponseAdapter
 import com.apollographql.apollo.api.internal.StreamResponseReader
 import com.apollographql.apollo.cache.CacheHeaders
 import com.apollographql.apollo.cache.normalized.CacheKey
@@ -33,34 +34,52 @@ fun <D : Fragment.Data> Fragment<D>.normalize(
   return Normalizer(cacheKeyResolver).normalize(writer.root, rootKey).values.toSet()
 }
 
-fun <D : Operation.Data> Operation<D>.readDataFromCache(
+private fun <D> readDataFromCacheInternal(
+    adapter: ResponseAdapter<D>,
+    variables: Operation.Variables,
     customScalarAdapters: CustomScalarAdapters,
     readableStore: ReadableStore,
+    cacheKey: CacheKey,
     cacheKeyResolver: CacheKeyResolver,
     cacheHeaders: CacheHeaders,
 ): D? {
   return try {
     val cacheKeyBuilder = RealCacheKeyBuilder()
-    val rootRecord = readableStore.read(CacheKeyResolver.rootKey().key, cacheHeaders) ?: return null
+    val rootRecord = readableStore.read(cacheKey.key, cacheHeaders) ?: return null
     val fieldValueResolver = CacheValueResolver(
         readableStore,
-        variables(),
+        variables,
         cacheKeyResolver,
         cacheHeaders,
         cacheKeyBuilder)
 
     val reader = MapResponseReader(
         root = rootRecord,
-        variable = variables(),
+        variable = variables,
         valueResolver = fieldValueResolver,
         customScalarAdapters = customScalarAdapters,
     )
 
-    adapter().fromResponse(reader)
+    adapter.fromResponse(reader)
   } catch (e: Exception) {
     null
   }
 }
+
+fun <D : Operation.Data> Operation<D>.readDataFromCache(
+    customScalarAdapters: CustomScalarAdapters,
+    readableStore: ReadableStore,
+    cacheKeyResolver: CacheKeyResolver,
+    cacheHeaders: CacheHeaders,
+) = readDataFromCacheInternal(
+    adapter(),
+    variables(),
+    customScalarAdapters,
+    readableStore,
+    CacheKeyResolver.rootKey(),
+    cacheKeyResolver,
+    cacheHeaders
+)
 
 fun <D : Operation.Data> Operation<D>.streamDataFromCache(
     customScalarAdapters: CustomScalarAdapters,
@@ -106,30 +125,15 @@ fun <D : Fragment.Data> Fragment<D>.readDataFromCache(
     cacheKeyResolver: CacheKeyResolver,
     cacheHeaders: CacheHeaders,
     cacheKey: CacheKey
-): D? {
-  return try {
-    val cacheKeyBuilder = RealCacheKeyBuilder()
-    val rootRecord = readableStore.read(cacheKey.key, cacheHeaders) ?: return null
-    val fieldValueResolver = CacheValueResolver(
-        readableStore,
-        variables(),
-        cacheKeyResolver,
-        cacheHeaders,
-        cacheKeyBuilder)
-
-    val reader = MapResponseReader(
-        root = rootRecord,
-        variable = variables(),
-        valueResolver = fieldValueResolver,
-        customScalarAdapters = customScalarAdapters,
-    )
-
-    adapter().fromResponse(reader)
-  } catch (e: Exception) {
-    e.printStackTrace()
-    null
-  }
-}
+) = readDataFromCacheInternal(
+    adapter(),
+    variables(),
+    customScalarAdapters,
+    readableStore,
+    cacheKey,
+    cacheKeyResolver,
+    cacheHeaders
+)
 
 fun Collection<Record>?.dependentKeys(): Set<String> {
   return this?.flatMap {
