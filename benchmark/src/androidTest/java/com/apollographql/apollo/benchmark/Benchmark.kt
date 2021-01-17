@@ -3,6 +3,7 @@ package com.apollographql.apollo.benchmark
 import Utils.bufferedSource
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.platform.app.InstrumentationRegistry
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.CustomScalarAdapters
@@ -18,9 +19,12 @@ import com.apollographql.apollo.cache.normalized.internal.batchDataFromCache
 import com.apollographql.apollo.cache.normalized.internal.normalize
 import com.apollographql.apollo.cache.normalized.internal.readDataFromCache
 import com.apollographql.apollo.cache.normalized.internal.streamDataFromCache
+import com.apollographql.apollo.cache.normalized.sql.ApolloDatabase
 import com.apollographql.apollo.cache.normalized.sql.SqlNormalizedCache
 import com.apollographql.apollo.cache.normalized.sql.SqlNormalizedCacheFactory
 import com.squareup.moshi.Moshi
+import com.squareup.sqldelight.android.AndroidSqliteDriver
+import com.squareup.sqldelight.db.SqlDriver
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

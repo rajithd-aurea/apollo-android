@@ -38,6 +38,9 @@ dependencies {
   add("implementation", "com.apollographql.apollo:apollo-runtime:3.0.0-SNAPSHOT")
   add("implementation", "com.apollographql.apollo:apollo-api:3.0.0-SNAPSHOT")
   add("implementation", "com.apollographql.apollo:apollo-normalized-cache-sqlite:3.0.0-SNAPSHOT")
+  add("implementation", "androidx.sqlite:sqlite:2.1.0")
+  add("implementation", "androidx.sqlite:sqlite-framework:2.1.0")
+
 
   add("implementation", groovy.util.Eval.x(project, "x.dep.moshi.moshi"))
   add("kapt", groovy.util.Eval.x(project, "x.dep.moshi.kotlinCodegen"))
