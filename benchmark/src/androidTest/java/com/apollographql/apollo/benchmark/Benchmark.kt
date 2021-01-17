@@ -18,7 +18,10 @@ import com.apollographql.apollo.cache.normalized.internal.readDataFromCache
 import com.apollographql.apollo.cache.normalized.internal.streamDataFromCache
 import com.apollographql.apollo.cache.normalized.sql.SqlNormalizedCache
 import com.apollographql.apollo.cache.normalized.sql.SqlNormalizedCacheFactory
+import com.apollographql.apollo.coroutines.await
+import com.apollographql.apollo.fetcher.ApolloResponseFetchers
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -60,43 +63,26 @@ class Benchmark {
   }
 
   lateinit var apolloClient: ApolloClient
-  lateinit var cache: SqlNormalizedCache
-  lateinit var readableStore: ReadableStore
 
   @Before
   fun setup() {
+    val cache = SqlNormalizedCacheFactory(context = InstrumentationRegistry.getInstrumentation().context)
+
     apolloClient = ApolloClient.builder()
-        .normalizedCache(SqlNormalizedCacheFactory(context = InstrumentationRegistry.getInstrumentation().context))
+        .serverUrl("https://example.com")
+        .normalizedCache(cache)
         .build()
 
     val data = operation.parse(bufferedSource()).data!!
 
-    val records = operation.normalize(data, CustomScalarAdapters.DEFAULT, CacheKeyResolver.DEFAULT)
-    cache.merge(records, CacheHeaders.NONE)
-
-    readableStore = object : ReadableStore {
-      override fun read(key: String, cacheHeaders: CacheHeaders): Record? {
-        return cache.loadRecord(key, cacheHeaders)
-      }
-
-      override fun read(keys: Collection<String>, cacheHeaders: CacheHeaders): Collection<Record> {
-        return cache.loadRecords(keys, cacheHeaders)
-      }
-
-      override fun stream(key: String, cacheHeaders: CacheHeaders): JsonReader? {
-        return cache.stream(key, cacheHeaders)
-      }
-    }
+    apolloClient.apolloStore.writeOperation(operation, data)
   }
 
   @Test
   fun apolloReadCache() = benchmarkRule.measureRepeated {
-    val data2 = operation.readDataFromCache(CustomScalarAdapters.DEFAULT, readableStore, CacheKeyResolver.DEFAULT, CacheHeaders.NONE)
-    //println(data2)
-  }
-  @Test
-  fun apolloStreamCache() = benchmarkRule.measureRepeated {
-    val data2 = operation.streamDataFromCache(CustomScalarAdapters.DEFAULT, readableStore, CacheKeyResolver.DEFAULT, CacheHeaders.NONE)
-    //println(data2)
+    runBlocking {
+      val data = apolloClient.query(operation).responseFetcher(ApolloResponseFetchers.CACHE_ONLY).await()
+      //println(data)
+    }
   }
 }

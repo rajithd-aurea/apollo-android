@@ -138,7 +138,7 @@ class RealApolloStore(normalizedCache: NormalizedCache,
   ): D? {
     return readTransaction { cache ->
       try {
-        operation.streamDataFromCache(
+        operation.readDataFromCache(
             customScalarAdapters,
             cache,
             cacheKeyResolver(),

@@ -11,9 +11,14 @@ import com.apollographql.apollo.cache.normalized.internal.ReadableStore
 import com.apollographql.apollo.cache.normalized.internal.normalize
 import com.apollographql.apollo.cache.normalized.internal.readDataFromCache
 import com.apollographql.apollo.cache.normalized.internal.streamDataFromCache
+import com.apollographql.apollo.cache.normalized.sql.SqlNormalizedCache
 import com.apollographql.apollo.cache.normalized.sql.SqlNormalizedCacheFactory
+import com.apollographql.apollo.coroutines.await
+import com.apollographql.apollo.fetcher.ApolloResponseFetchers
 import com.apollographql.apollo.integration.benchmark.GetResponseQuery
+import kotlinx.coroutines.runBlocking
 import okio.Buffer
+import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -26,35 +31,30 @@ import kotlin.test.assertEquals
  */
 class BenchmarkTest {
 
-  
-  @Test
-  fun apolloReadCache() {
-    val operation = GetResponseQuery()
-    val cache = SqlNormalizedCacheFactory("jdbc:sqlite:").create(RecordFieldJsonAdapter())
+  lateinit var apolloClient: ApolloClient
+  lateinit var cache: SqlNormalizedCache
+
+  private val operation = GetResponseQuery()
+
+  @Before
+  fun setup() {
+    val cache = SqlNormalizedCacheFactory("jdbc:sqlite:")
 
     val bufferedSource = Buffer().writeUtf8(Utils.readFileToString(Utils::class.java, "/largesample.json"))
 
-    val data1 = operation.parse(bufferedSource).data!!
+    apolloClient = ApolloClient.builder()
+        .serverUrl("https://example.com")
+        .normalizedCache(cache)
+        .build()
 
-    val records = operation.normalize(data1, CustomScalarAdapters.DEFAULT, CacheKeyResolver.DEFAULT)
-    cache.merge(records, CacheHeaders.NONE)
+    val data = operation.parse(bufferedSource).data!!
 
-    val readableStore = object : ReadableStore {
-      override fun read(key: String, cacheHeaders: CacheHeaders): Record? {
-        return cache.loadRecord(key, cacheHeaders)
-      }
+    apolloClient.apolloStore.writeOperation(operation, data)
+  }
 
-      override fun read(keys: Collection<String>, cacheHeaders: CacheHeaders): Collection<Record> {
-        return cache.loadRecords(keys, cacheHeaders)
-      }
-
-      override fun stream(key: String, cacheHeaders: CacheHeaders): JsonReader? {
-        return cache.stream(key, cacheHeaders)
-      }
-    }
-    val data2 = operation.readDataFromCache(CustomScalarAdapters.DEFAULT, readableStore, CacheKeyResolver.DEFAULT, CacheHeaders.NONE)
-    val data3 = operation.streamDataFromCache(CustomScalarAdapters.DEFAULT, readableStore, CacheKeyResolver.DEFAULT, CacheHeaders.NONE)
-
-    assertEquals(data2, data3)
+  @Test
+  fun apolloReadCache() = runBlocking {
+    val data = apolloClient.query(operation).responseFetcher(ApolloResponseFetchers.CACHE_ONLY).await()
+    println(data)
   }
 }

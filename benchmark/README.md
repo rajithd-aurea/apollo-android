@@ -17,5 +17,8 @@ benchmark:    13,423,283 ns Benchmark.moshi
 benchmark:    15,175,678 ns Benchmark.apollo
 benchmark:    31,166,253 ns Benchmark.apolloParseAndNormalize
 benchmark:   179,509,862 ns Benchmark.apolloStreamCache
+benchmark:   185,360,175 ns Benchmark.apolloStreamCacheRuntime
 benchmark:   220,477,522 ns Benchmark.apolloReadCache
+benchmark:   220,591,324 ns Benchmark.apolloReadCacheRuntiem
+
 ```
