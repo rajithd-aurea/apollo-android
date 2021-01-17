@@ -12,7 +12,9 @@ import com.apollographql.apollo.benchmark.moshi.Query
 import com.apollographql.apollo.cache.CacheHeaders
 import com.apollographql.apollo.cache.normalized.CacheKeyResolver
 import com.apollographql.apollo.cache.normalized.Record
+import com.apollographql.apollo.cache.normalized.RecordFieldJsonAdapter
 import com.apollographql.apollo.cache.normalized.internal.ReadableStore
+import com.apollographql.apollo.cache.normalized.internal.batchDataFromCache
 import com.apollographql.apollo.cache.normalized.internal.normalize
 import com.apollographql.apollo.cache.normalized.internal.readDataFromCache
 import com.apollographql.apollo.cache.normalized.internal.streamDataFromCache
@@ -59,15 +61,12 @@ class Benchmark {
     val records = operation.normalize(data, CustomScalarAdapters.DEFAULT, CacheKeyResolver.DEFAULT)
   }
 
-  lateinit var apolloClient: ApolloClient
   lateinit var cache: SqlNormalizedCache
   lateinit var readableStore: ReadableStore
 
   @Before
   fun setup() {
-    apolloClient = ApolloClient.builder()
-        .normalizedCache(SqlNormalizedCacheFactory(context = InstrumentationRegistry.getInstrumentation().context))
-        .build()
+    cache = SqlNormalizedCacheFactory(context = InstrumentationRegistry.getInstrumentation().context).create(RecordFieldJsonAdapter())
 
     val data = operation.parse(bufferedSource()).data!!
 
@@ -97,6 +96,11 @@ class Benchmark {
   @Test
   fun apolloStreamCache() = benchmarkRule.measureRepeated {
     val data2 = operation.streamDataFromCache(CustomScalarAdapters.DEFAULT, readableStore, CacheKeyResolver.DEFAULT, CacheHeaders.NONE)
+    //println(data2)
+  }
+  @Test
+  fun apolloBatchCache() = benchmarkRule.measureRepeated {
+    val data2 = operation.batchDataFromCache(CustomScalarAdapters.DEFAULT, readableStore, CacheKeyResolver.DEFAULT, CacheHeaders.NONE)
     //println(data2)
   }
 }
