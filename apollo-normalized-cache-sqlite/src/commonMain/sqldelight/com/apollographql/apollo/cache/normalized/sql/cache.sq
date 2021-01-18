@@ -1,10 +1,14 @@
-CREATE TABLE records (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT,
-  key TEXT NOT NULL,
-  record TEXT NOT NULL
-);
+CREATE TABLE records (_id INTEGER PRIMARY KEY AUTOINCREMENT, key TEXT NOT NULL, record TEXT NOT NULL);
 
 CREATE INDEX idx_records_key ON records(key);
+
+
+EXPLAIN QUERY PLAN SELECT key, record FROM records WHERE key='1';
+
+EXPLAIN SELECT key, record FROM records WHERE key=?;
+
+EXPLAIN SELECT key, record FROM records WHERE key IN (?,?,?,?,?,?,?,?,?,?,?,?);
+
 
 recordForKey:
 SELECT key, record FROM records WHERE key=?;
@@ -33,3 +37,7 @@ SELECT changes();
 
 deleteAll:
 DELETE FROM records;
+
+-- use only for debug
+explain:
+EXPLAIN QUERY PLAN SELECT key, record FROM records WHERE key='1';
