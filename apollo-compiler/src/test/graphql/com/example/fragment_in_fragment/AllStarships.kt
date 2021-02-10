@@ -60,18 +60,6 @@ class AllStarships : Query<AllStarships.Data> {
           val __typename: String
 
           interface Starship : Node, StarshipFragment {
-            override val __typename: String
-
-            /**
-             * The ID of an object
-             */
-            override val id: String
-
-            /**
-             * The name of this starship. The common name, such as "Death Star".
-             */
-            override val name: String?
-
             override val pilotConnection: PilotConnection?
 
             /**
@@ -96,18 +84,9 @@ class AllStarships : Query<AllStarships.Data> {
                  * An individual person or character within the Star Wars universe.
                  */
                 interface Node : StarshipFragment.PilotConnection.Edges.Node {
-                  override val __typename: String
-
                   interface Person : Node, PilotFragment,
                       StarshipFragment.PilotConnection.Edges.Node.Person,
                       StarshipFragment.PilotConnection.Edges.Node {
-                    override val __typename: String
-
-                    /**
-                     * The name of this person.
-                     */
-                    override val name: String?
-
                     /**
                      * A planet that this person was born on or inhabits.
                      */
@@ -119,19 +98,10 @@ class AllStarships : Query<AllStarships.Data> {
                      */
                     interface Homeworld : PilotFragment.Homeworld,
                         StarshipFragment.PilotConnection.Edges.Node.Person.Homeworld {
-                      override val __typename: String
-
                       interface Planet : Homeworld, PlanetFragment, PilotFragment.Homeworld.Planet,
                           PilotFragment.Homeworld,
                           StarshipFragment.PilotConnection.Edges.Node.Person.Homeworld.Planet,
-                          StarshipFragment.PilotConnection.Edges.Node.Person.Homeworld {
-                        override val __typename: String
-
-                        /**
-                         * The name of this planet.
-                         */
-                        override val name: String?
-                      }
+                          StarshipFragment.PilotConnection.Edges.Node.Person.Homeworld
 
                       companion object {
                         fun Homeworld.asPlanet(): Planet? = this as? Planet
@@ -186,8 +156,6 @@ class AllStarships : Query<AllStarships.Data> {
                  */
                 interface Node : Starship.PilotConnection.Edges.Node,
                     StarshipFragment.PilotConnection.Edges.Node {
-                  override val __typename: String
-
                   data class PersonNode(
                     override val __typename: String,
                     /**
@@ -209,8 +177,6 @@ class AllStarships : Query<AllStarships.Data> {
                     interface Homeworld : Starship.PilotConnection.Edges.Node.Person.Homeworld,
                         PilotFragment.Homeworld,
                         StarshipFragment.PilotConnection.Edges.Node.Person.Homeworld {
-                      override val __typename: String
-
                       data class PlanetHomeworld(
                         override val __typename: String,
                         /**

@@ -40,8 +40,6 @@ class TestQuery : Query<TestQuery.Data> {
       val __typename: String
 
       interface Character : Hero {
-        override val __typename: String
-
         /**
          * The name of the character
          */
@@ -49,8 +47,6 @@ class TestQuery : Query<TestQuery.Data> {
       }
 
       interface Human : Hero {
-        override val __typename: String
-
         /**
          * Height in the preferred unit, default is meters
          */
@@ -58,8 +54,6 @@ class TestQuery : Query<TestQuery.Data> {
       }
 
       interface Droid : Hero {
-        override val __typename: String
-
         /**
          * This droid's primary function
          */

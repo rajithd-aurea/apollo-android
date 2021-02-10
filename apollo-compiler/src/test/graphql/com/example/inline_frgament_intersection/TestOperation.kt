@@ -37,8 +37,6 @@ class TestOperation : Query<TestOperation.Data> {
       val __typename: String
 
       interface Being : Random {
-        override val __typename: String
-
         val name: String
 
         val friends: List<Friends>
@@ -49,10 +47,6 @@ class TestOperation : Query<TestOperation.Data> {
           val name: String
 
           interface Wookie : Friends {
-            override val __typename: String
-
-            override val name: String
-
             val lifeExpectancy: Double?
           }
 
@@ -62,30 +56,14 @@ class TestOperation : Query<TestOperation.Data> {
         }
 
         interface Human : Being {
-          override val __typename: String
-
-          override val name: String
-
           override val friends: List<Friends>
 
           val profilePictureUrl: String?
 
           interface Friends : Being.Friends {
-            override val __typename: String
-
-            override val name: String
-
             val isFamous: Boolean?
 
             interface Wookie : Being.Friends, Being.Friends.Wookie, Friends {
-              override val __typename: String
-
-              override val name: String
-
-              override val lifeExpectancy: Double?
-
-              override val isFamous: Boolean?
-
               val race: Race
             }
 
@@ -97,8 +75,6 @@ class TestOperation : Query<TestOperation.Data> {
       }
 
       interface Wookie : Random {
-        override val __typename: String
-
         val race: Race
 
         val friends: List<Friends>
@@ -115,8 +91,6 @@ class TestOperation : Query<TestOperation.Data> {
         override val profilePictureUrl: String?
       ) : Random, Being, Being.Human {
         interface Friends : Being.Friends, Being.Human.Friends {
-          override val __typename: String
-
           data class WookieFriends(
             override val __typename: String,
             override val name: String,
@@ -141,8 +115,6 @@ class TestOperation : Query<TestOperation.Data> {
         override val race: Race
       ) : Random, Being, Wookie {
         interface Friends : Being.Friends, Wookie.Friends {
-          override val __typename: String
-
           data class WookieFriends(
             override val __typename: String,
             override val name: String,

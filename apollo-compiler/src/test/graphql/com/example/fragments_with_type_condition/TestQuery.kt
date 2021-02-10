@@ -42,33 +42,9 @@ class TestQuery : Query<TestQuery.Data> {
     interface R2 {
       val __typename: String
 
-      interface Human : R2, HumanDetails {
-        override val __typename: String
+      interface Human : R2, HumanDetails
 
-        /**
-         * What this human calls themselves
-         */
-        override val name: String
-
-        /**
-         * Height in the preferred unit, default is meters
-         */
-        override val height: Double?
-      }
-
-      interface Droid : R2, DroidDetails {
-        override val __typename: String
-
-        /**
-         * What others call this droid
-         */
-        override val name: String
-
-        /**
-         * This droid's primary function
-         */
-        override val primaryFunction: String?
-      }
+      interface Droid : R2, DroidDetails
 
       data class HumanR2(
         override val __typename: String,
@@ -115,33 +91,9 @@ class TestQuery : Query<TestQuery.Data> {
     interface Luke {
       val __typename: String
 
-      interface Human : Luke, HumanDetails {
-        override val __typename: String
+      interface Human : Luke, HumanDetails
 
-        /**
-         * What this human calls themselves
-         */
-        override val name: String
-
-        /**
-         * Height in the preferred unit, default is meters
-         */
-        override val height: Double?
-      }
-
-      interface Droid : Luke, DroidDetails {
-        override val __typename: String
-
-        /**
-         * What others call this droid
-         */
-        override val name: String
-
-        /**
-         * This droid's primary function
-         */
-        override val primaryFunction: String?
-      }
+      interface Droid : Luke, DroidDetails
 
       data class HumanLuke(
         override val __typename: String,

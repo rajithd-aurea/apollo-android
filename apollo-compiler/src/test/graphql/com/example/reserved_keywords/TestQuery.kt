@@ -54,8 +54,6 @@ class TestQuery : Query<TestQuery.Data> {
       val __typename: String
 
       interface Character : Objects {
-        override val __typename: String
-
         /**
          * The name of the character
          */

@@ -40,8 +40,6 @@ class TestQuery : Query<TestQuery.Data> {
       val __typename: String
 
       interface Character : Search {
-        override val __typename: String
-
         /**
          * The ID of the character
          */
@@ -64,8 +62,6 @@ class TestQuery : Query<TestQuery.Data> {
           val __typename: String
 
           interface Character : Friends {
-            override val __typename: String
-
             /**
              * The name of the character
              */
@@ -73,8 +69,6 @@ class TestQuery : Query<TestQuery.Data> {
           }
 
           interface Human : Friends {
-            override val __typename: String
-
             /**
              * The home planet of the human, or null if unknown
              */
@@ -92,8 +86,6 @@ class TestQuery : Query<TestQuery.Data> {
               val __typename: String
 
               interface Character : Friends {
-                override val __typename: String
-
                 /**
                  * The movie this character first appears in
                  */
@@ -107,8 +99,6 @@ class TestQuery : Query<TestQuery.Data> {
           }
 
           interface Droid : Friends {
-            override val __typename: String
-
             /**
              * This droid's primary function
              */
@@ -141,8 +131,6 @@ class TestQuery : Query<TestQuery.Data> {
       }
 
       interface Starship : Search {
-        override val __typename: String
-
         /**
          * The name of the starship
          */
@@ -168,8 +156,6 @@ class TestQuery : Query<TestQuery.Data> {
          * A character from the Star Wars universe
          */
         interface Friends : Character.Friends {
-          override val __typename: String
-
           data class CharacterDroidFriends(
             override val __typename: String,
             /**
@@ -215,8 +201,6 @@ class TestQuery : Query<TestQuery.Data> {
              * A character from the Star Wars universe
              */
             interface Friends : Character.Friends.Human.Friends {
-              override val __typename: String
-
               data class CharacterFriends(
                 override val __typename: String,
                 /**

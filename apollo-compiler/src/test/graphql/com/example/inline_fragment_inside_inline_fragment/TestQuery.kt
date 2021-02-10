@@ -39,21 +39,12 @@ class TestQuery : Query<TestQuery.Data> {
       val __typename: String
 
       interface Character : Search {
-        override val __typename: String
-
         /**
          * The name of the character
          */
         val name: String
 
         interface Human : Character {
-          override val __typename: String
-
-          /**
-           * The name of the character
-           */
-          override val name: String
-
           /**
            * The home planet of the human, or null if unknown
            */
@@ -61,13 +52,6 @@ class TestQuery : Query<TestQuery.Data> {
         }
 
         interface Droid : Character {
-          override val __typename: String
-
-          /**
-           * The name of the character
-           */
-          override val name: String
-
           /**
            * This droid's primary function
            */

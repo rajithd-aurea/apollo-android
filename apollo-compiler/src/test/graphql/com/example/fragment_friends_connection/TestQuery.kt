@@ -42,13 +42,6 @@ class TestQuery : Query<TestQuery.Data> {
       val __typename: String
 
       interface Character : Hero, HeroDetails {
-        override val __typename: String
-
-        /**
-         * The name of the character
-         */
-        override val name: String
-
         /**
          * The friends of the character exposed as a connection with edges
          */
@@ -58,11 +51,6 @@ class TestQuery : Query<TestQuery.Data> {
          * A connection object for a character's friends
          */
         interface FriendsConnection : HeroDetails.FriendsConnection {
-          /**
-           * The total number of friends
-           */
-          override val totalCount: Int?
-
           /**
            * The edges for each of the character's friends.
            */
@@ -80,12 +68,7 @@ class TestQuery : Query<TestQuery.Data> {
             /**
              * A character from the Star Wars universe
              */
-            interface Node : HeroDetails.FriendsConnection.Edges.Node {
-              /**
-               * The name of the character
-               */
-              override val name: String
-            }
+            interface Node : HeroDetails.FriendsConnection.Edges.Node
           }
         }
       }

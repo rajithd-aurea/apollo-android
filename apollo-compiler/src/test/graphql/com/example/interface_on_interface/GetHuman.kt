@@ -41,8 +41,6 @@ class GetHuman : Query<GetHuman.Data> {
       val __typename: String
 
       interface Human : Node {
-        override val __typename: String
-
         val height: Double
       }
 

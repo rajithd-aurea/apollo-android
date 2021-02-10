@@ -31,8 +31,6 @@ class QueryFragmentImpl : Fragment<QueryFragmentImpl.Data> {
      * A character from the Star Wars universe
      */
     interface Hero : QueryFragment.Hero {
-      override val __typename: String
-
       data class CharacterHero(
         override val __typename: String,
         /**
@@ -50,8 +48,6 @@ class QueryFragmentImpl : Fragment<QueryFragmentImpl.Data> {
      * An autonomous mechanical character in the Star Wars universe
      */
     interface Droid : QueryFragment.Droid {
-      override val __typename: String
-
       data class DroidDroid(
         override val __typename: String,
         /**
@@ -73,8 +69,6 @@ class QueryFragmentImpl : Fragment<QueryFragmentImpl.Data> {
      * A humanoid creature from the Star Wars universe
      */
     interface Human : QueryFragment.Human {
-      override val __typename: String
-
       data class HumanHuman(
         override val __typename: String,
         /**
